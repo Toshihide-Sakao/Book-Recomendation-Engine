@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Recommendation Engine</title>
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        .book-container {
+            position: relative; /*Enables positioning of child elements relative to this container*/
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .more-info-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .more-info-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Style for the form */
+        form {
+            width: 50%; /* Set the width of the form */
+            margin: 20px auto; /* Center the form horizontally */
+            display: flex; /* Use flexbox for layout */
+            flex-direction: column; /* Stack input and button vertically */
+            align-items: center; /* Center items horizontally */
+        }
+
+        /* Style for the input field */
+        input[type="text"] {
+            width: 100%; /* Make the input field take the full width of the form */
+            padding: 10px; /* Add padding for a larger input field */
+            font-size: 16px; /* Increase font size */
+            margin-bottom: 10px; /* Add spacing below the input field */
+            border: 1px solid #ccc; /* Add a border */
+            border-radius: 5px; /* Round the corners */
+        }
+
+        /* Style for the button */
+        button {
+            padding: 10px 20px; /* Add padding for a larger button */
+            font-size: 16px; /* Increase font size */
+            background-color: #007BFF; /* Button background color */
+            color: white; /* Button text color */
+            border: none; /* Remove border */
+            border-radius: 5px; /* Round the corners */
+            cursor: pointer; /* Change cursor to pointer */
+        }
+
+        button:hover {
+            background-color: #0056b3; /* Darker background on hover */
+        }
+    </style>
+    <script>
+        // Function to toggle visibility of the details
+        function toggleDetails(id) {
+            const details = document.getElementById(id);
+            if (details.classList.contains('hidden')) {
+                details.classList.remove('hidden');
+            } else {
+                details.classList.add('hidden');
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Book Recommendation Engine</h1>
+    <form method="POST">
+        <input type="text" name="query" placeholder="Enter a query" required>
+        <button type="submit">Search</button>
+    </form>
+
+    {% if results %}
+        <h2>Search Results:</h2>
+        <ul>
+            {% for result in results %}
+                <li class="book-container">
+                    <strong>Title:</strong> {{ result.Title }}<br>
+                    <strong>Author:</strong> {{ result.Author }}<br>
+                    <strong>Rating:</strong> {{ result.Rating }}<br>
+                    
+                    <!-- Button to toggle visibility -->
+                    <button class="more-info-button" onclick="toggleDetails('details-{{ loop.index }}')">More Info</button>
+                    
+                    <!-- Hidden details -->
+                    <div id="details-{{ loop.index }}" class="hidden">
+                        <strong>Summary:</strong> {{ result.Summary }}<br>
+                        <strong>Link:</strong> <a href="{{ result.Link }}" target="_blank">View Book</a><br>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>

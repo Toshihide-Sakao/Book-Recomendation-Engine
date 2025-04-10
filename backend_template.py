@@ -10,7 +10,6 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-user_liked_book_id: List[int] = list() # List of books that the user likes(at the moment we assume we only have one user)
 book_data = {
     0: {
         "book_name": "the best book ever",

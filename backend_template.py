@@ -2,6 +2,10 @@
 
 from typing import List
 
+import eventlet
+eventlet.monkey_patch()  # Avoid warning about wsgi server for production
+import eventlet.wsgi
+
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -203,7 +207,8 @@ def logout_request():
 
 if __name__ == "__main__":
     print("Starting backend")
-    Flask.run(app, port=5000)
+    eventlet.wsgi.server(eventlet.listen(('127.0.0.1', 5000)), app)
+    # Flask.run(app, port=5000)
 
 
 

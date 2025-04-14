@@ -31,13 +31,11 @@ user_data = {
     0: {
         "username": "bob",
         "password": "123abc",
-        "liked_books": [0],
         "read_books": [0, 1]
     },
     1: {
         "username": "alice",
         "password": "123abcd",
-        "liked_books": [1],
         "read_books": [1]
     }
 }

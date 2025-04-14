@@ -15,7 +15,11 @@ def get_directory_path(__file__in, up_directories=0):
 def python_virtual_environment(env_directory_path):
     # Setup a python virtual environmet
     os.makedirs(env_directory_path, exist_ok=True) # Ensure directory exists
-    os.system(f'{sys.executable} -m venv "{env_directory_path}"')
+    my_os = platform.system()
+    if my_os == "Windows":
+        os.system(f'powershell; &"{sys.executable}" -m venv "{env_directory_path}"')
+    else:
+        os.system(f'"{sys.executable}" -m venv "{env_directory_path}"')
 
 
 def pip_install_requirements_file_in_virtual_environment(env_directory_path, requirements_path):

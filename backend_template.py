@@ -1,14 +1,24 @@
 # This is a backend template for how to setup a flask server
-
 from typing import List
-
+import configparser
 import eventlet
 eventlet.monkey_patch()  # Avoid warning about wsgi server for production
 import eventlet.wsgi
+from search.elastic_search import connect_to_es, search
 
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
+
+# Read config.info file to retrive username and password
+config = configparser.ConfigParser()
+config.read("config.info")  # REPLACE to your .info file
+
+USERNAME = config.get("DEFAULT", "es_username")
+PWD = config.get("DEFAULT", "es_password")
+INDEX_NAME = config.get("DEFAULT", "index_name")
+
+es = connect_to_es(USERNAME, PWD)
 
 book_data = {
     0: {
@@ -63,11 +73,23 @@ def search_request():
         
     except (ValueError, KeyError, TypeError) as e:
         return jsonify({'error': f'Invalid input: {str(e)}'}), 400
-    
-    # ADD YOUR CODE HERE
-    # perform search query
 
-    ranked_book_id_list = [0, 1]
+    ranked_book_id_list = list()
+
+    if user_id in user_data.keys():
+
+        read_books = user_data.get(user_id).get("read_books", list())
+
+        ranked_book_id_list = search(
+            es=es,
+            query_text=search_query,
+            index_name=INDEX_NAME, 
+            relevant_book_ids=read_books, 
+            personanlization=True
+            )
+    else:
+        return jsonify({'error': f'Invalid user_id: {str(e)}'}), 400
+
 
     return jsonify({"response": ranked_book_id_list}), 200
 

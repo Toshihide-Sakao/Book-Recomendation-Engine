@@ -4,15 +4,13 @@ config.read("../config.info")  # Path to your .info file
 
 username = config.get("DEFAULT", "es_username")
 password = config.get("DEFAULT", "es_password")
+index_name = config.get("DEFAULT", "index_name")
 
 # Connect to Elasticsearch with authentication
 es = Elasticsearch(
     "http://localhost:9200",
     basic_auth=(username, password)
 )
-
-# the index name
-index_name = "books"
 
 # Function to insert data into Elasticsearch
 def insert_data(file_path):

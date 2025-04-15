@@ -85,7 +85,9 @@ def search_request():
             query_text=search_query,
             index_name=INDEX_NAME, 
             relevant_book_ids=read_books, 
-            personanlization=True
+            personanlization=True,
+            genre="Magic",  #settings.get("genre"),
+            min_rating=4.0  #setting.get("min_rating")
             )
     else:
         return jsonify({'error': f'Invalid user_id: {str(e)}'}), 400

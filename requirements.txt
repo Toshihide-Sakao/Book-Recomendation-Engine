@@ -1,0 +1,6 @@
+flask
+flask-cors
+elasticsearch
+eventlet
+python-dotenv
+configparser

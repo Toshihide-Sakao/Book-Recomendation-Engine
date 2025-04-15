@@ -1,11 +1,5 @@
-Got it! Here's a full `README.md` version of your content, ready to drop into your project:
-
-```markdown
 # Elasticsearch Docker Setup
 
-This guide will help you set up Elasticsearch using Docker and run a simple Flask backend that interacts with it.
-
----
 
 ## 🚀 Getting Started
 
@@ -69,11 +63,8 @@ python start.py
 ## 🔧 TODO
 
 - Add instructions for running the complete `flask_app`
-```
 
-Let me know if you'd like to add a logo, usage examples, or a section for contributors or licensing!
-
-
+---
 
 # Frontend backend mock
 

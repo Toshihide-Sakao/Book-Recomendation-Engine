@@ -23,7 +23,7 @@ def relevance_feedback(es, query_text, index_name, doc_ids, fields, top_n_terms,
                 tf = stats.get("term_freq", 0)
                 df = stats.get("doc_freq", 1)
                 
-                doc_count = 10000  # TODO: move out constant
+                doc_count = es.count(index=index_name)["count"]
                 idf = math.log((doc_count + 1) / (df + 1)) + 1
                 
                 tfidf = tf * idf
@@ -31,7 +31,8 @@ def relevance_feedback(es, query_text, index_name, doc_ids, fields, top_n_terms,
                 # TODO: is this correct?: Aggregate the TF-IDF scores if the same term appears across different fields/docs.
                 aggregated_tfidf[term] = aggregated_tfidf.get(term, 0) + tfidf
 
-    sorted_terms = sorted(aggregated_tfidf.items(), key=lambda x: x[1], reverse=True)[:top_n_terms]
+    # sorted_terms = sorted(aggregated_tfidf.items(), key=lambda x: x[1], reverse=True)[:top_n_terms]
+    sorted_terms = aggregated_tfidf.items()
 
     boosted_clauses = [  # Add terms from relevant docs
         {
@@ -92,7 +93,7 @@ def connect_to_es(username, password):
 
 def search(es: Elasticsearch, query_text: str, index_name:str, relevant_book_ids:list, personanlization=True, genre=None, min_rating=None):
     results = []
-    fields = ["Summary", "Author", "Title"]
+    fields = ["Summary", "Author", "Title", "Genres"]
     top_n_terms = 10  # How many top terms to use in the new query
 
     if personanlization:

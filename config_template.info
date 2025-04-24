@@ -3,3 +3,6 @@
 es_username=elastic
 es_password=
 index_name=books
+added_term_weight=0.01
+query_term_weight=4
+fields=Summary,Author,Title^3,Genres^2

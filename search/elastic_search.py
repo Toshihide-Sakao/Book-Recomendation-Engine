@@ -3,6 +3,13 @@ from elasticsearch import Elasticsearch
 import configparser
 import math
 
+config = configparser.ConfigParser()
+config.read("./config.info")
+
+ADDED_TERM_WEIGHT = float(config.get("DEFAULT", "added_term_weight"))
+QUERY_TERM_WEIGHT = float(config.get("DEFAULT", "query_term_weight"))
+FIELDS = config.get("DEFAULT", "fields").split(",")
+
 
 def relevance_feedback(es, query_text, index_name, doc_ids, fields, added_term_weight=0.01, query_term_weight=4, genres=None, min_rating=None):
     aggregated_tfidf = {}
@@ -99,7 +106,6 @@ def connect_to_es(username, password):
 
 def search(es: Elasticsearch, query_text: str, index_name:str, relevant_book_ids:list, personalization=True, genres=None, min_rating=None):
     results = []
-    fields = ["Summary", "Author", "Title", "Genres"]
 
     if personalization:
         query = relevance_feedback(
@@ -107,9 +113,9 @@ def search(es: Elasticsearch, query_text: str, index_name:str, relevant_book_ids
             query_text, 
             index_name, 
             relevant_book_ids, 
-            fields,  
-            added_term_weight=0.01, 
-            query_term_weight=4, 
+            FIELDS,  
+            added_term_weight=ADDED_TERM_WEIGHT, 
+            query_term_weight=QUERY_TERM_WEIGHT, 
             genres=genres, 
             min_rating=min_rating
             )
@@ -118,7 +124,7 @@ def search(es: Elasticsearch, query_text: str, index_name:str, relevant_book_ids
             "query": {
                 "multi_match": {
                     "query": query_text,
-                    "fields": ["Title", "Summary", "Author", "Genres"]
+                    "fields": FIELDS
                 }
             }
         }

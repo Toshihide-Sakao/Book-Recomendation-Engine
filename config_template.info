@@ -1,0 +1,5 @@
+# COPY AS config.info and fill in constants
+[DEFAULT]
+es_username=elastic
+es_password=
+index_name=books

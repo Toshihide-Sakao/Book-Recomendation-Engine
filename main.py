@@ -36,9 +36,11 @@ user_data = {
     }
 }
 
+
 @app.route("/")
 def route_index():
     return render_template('index.html')
+
 
 @app.route("/api/signup", methods=["POST"])
 def signup_request():
@@ -84,6 +86,7 @@ def login_request():
     except KeyError:
         return jsonify({"error": "Missing credentials"}), 400
 
+
 @app.route("/api/search", methods=["POST"])
 def search_request():
     try:
@@ -101,13 +104,14 @@ def search_request():
             index_name=INDEX_NAME, 
             relevant_book_ids=read_books, 
             personalization=True,
-            genre="Magic",  #settings.get("genre"),
+            genres=["Magic", "Cooking", "Comedy"],  #settings.get("genres"),
             min_rating=4.0  #setting.get("min_rating")
         )
         return jsonify(ranked_book_id_list)
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @app.route("/api/add_read_book", methods=["POST"])
 def add_read_book():
@@ -131,6 +135,7 @@ def add_read_book():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @app.route("/api/get_read_books", methods=["POST"])
 def get_read_books():
     try:
@@ -145,6 +150,7 @@ def get_read_books():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @app.route("/api/get_book_details", methods=["POST"])
 def get_book_details():
@@ -166,7 +172,8 @@ def get_book_details():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    
+ 
+
 @app.route("/api/get_book_id_by_title", methods=["POST"])
 def get_book_id_by_title():
     try:
@@ -181,6 +188,7 @@ def get_book_id_by_title():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == "__main__":
     print("Starting backend server...")

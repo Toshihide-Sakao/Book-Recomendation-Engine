@@ -25,9 +25,20 @@ def insert_data(file_path):
                 print(f"Error inserting record {i + 1}: {e}")
 
 
-if __name__ == '__main__':
+def main():
+    if not es.indices.exists(index=index_name):
+        es.indices.create(index=index_name)
+        print(f"Index '{index_name}' created.")
+    else:
+        print(f"Index '{index_name}' already exists.")
+
     # Path to the JSON file containing the data
     file_path = "../data/combined_meta_data.json"  
 
     # Insert data into Elasticsearch
     insert_data(file_path)
+
+
+if __name__ == '__main__':
+    main()
+    

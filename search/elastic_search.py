@@ -4,7 +4,7 @@ import configparser
 import math
 
 
-def relevance_feedback(es, query_text, index_name, doc_ids, fields, top_n_terms, added_term_weight=0.01, query_term_weight=4, genre=None, min_rating=None):
+def relevance_feedback(es, query_text, index_name, doc_ids, fields, added_term_weight=0.01, query_term_weight=4, genres=None, min_rating=None):
     aggregated_tfidf = {}
     
     for doc_id in doc_ids:
@@ -55,13 +55,17 @@ def relevance_feedback(es, query_text, index_name, doc_ids, fields, top_n_terms,
         }
     )
     excluding_filter = list()
-    if genre:
+    if genres:  # assume genres is a list like ["Action", "Drama"]
         excluding_filter.append(
             {
-            "match_phrase": {
-                        "Genres": genre
-                    }
-            })
+                "bool": {
+                    "should": [
+                        {"match_phrase": {"Genres": genre}} for genre in genres
+                    ],
+                    "minimum_should_match": 1
+                }
+            }
+        )
 
     if min_rating:
         excluding_filter.append(
@@ -93,10 +97,9 @@ def connect_to_es(username, password):
     return es
 
 
-def search(es: Elasticsearch, query_text: str, index_name:str, relevant_book_ids:list, personalization=True, genre=None, min_rating=None):
+def search(es: Elasticsearch, query_text: str, index_name:str, relevant_book_ids:list, personalization=True, genres=None, min_rating=None):
     results = []
     fields = ["Summary", "Author", "Title", "Genres"]
-    top_n_terms = 10  # How many top terms to use in the new query
 
     if personalization:
         query = relevance_feedback(
@@ -104,11 +107,10 @@ def search(es: Elasticsearch, query_text: str, index_name:str, relevant_book_ids
             query_text, 
             index_name, 
             relevant_book_ids, 
-            fields, 
-            top_n_terms, 
+            fields,  
             added_term_weight=0.01, 
             query_term_weight=4, 
-            genre=genre, 
+            genres=genres, 
             min_rating=min_rating
             )
     else:

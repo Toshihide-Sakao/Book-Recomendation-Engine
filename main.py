@@ -70,16 +70,31 @@ def signup_request():
         return jsonify({"error": str(e)}), 500
 
 
+# @app.route("/api/login", methods=["POST"])
+# def login_request():
+#     try:
+#         data = request.get_json()
+#         username = data["username"]
+#         password = data["password"]
+        
+#         for user_id, user in user_data.items():
+#             if user["username"] == username and user["password"] == password:
+#                 return jsonify({"user_id": user_id})
+        
+#         return jsonify({"error": "Invalid credentials"}), 401
+
+#     except KeyError:
+#         return jsonify({"error": "Missing credentials"}), 400
+
 @app.route("/api/login", methods=["POST"])
 def login_request():
     try:
         data = request.get_json()
         username = data["username"]
         password = data["password"]
-        
         for user_id, user in user_data.items():
             if user["username"] == username and user["password"] == password:
-                return jsonify({"user_id": user_id})
+                return jsonify({"user_id": user_id, "username": username})  # Include username
         
         return jsonify({"error": "Invalid credentials"}), 401
 
@@ -87,31 +102,61 @@ def login_request():
         return jsonify({"error": "Missing credentials"}), 400
 
 
+# @app.route("/api/search", methods=["POST"])
+# def search_request():
+#     try:
+#         data = request.get_json()
+#         user_id = int(data.get('user_id', 0))
+#         search_query = str(data.get('query', ''))
+        
+#         if user_id not in user_data:
+#             return jsonify({'error': 'Invalid user'}), 400
+
+#         read_books = user_data[user_id].get("read_books", [])
+#         ranked_book_id_list = search(
+#             es=es,
+#             query_text=search_query,
+#             index_name=INDEX_NAME, 
+#             relevant_book_ids=read_books, 
+#             personalization=True,
+#             genres=["Magic", "Cooking", "Comedy"],  #settings.get("genres"),
+#             min_rating=4.0  #setting.get("min_rating")
+#         )
+#         return jsonify(ranked_book_id_list)
+
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
+
 @app.route("/api/search", methods=["POST"])
 def search_request():
     try:
         data = request.get_json()
         user_id = int(data.get('user_id', 0))
         search_query = str(data.get('query', ''))
+        selected_genres = data.get('genres', [])  # Get the selected genres from the request
+        min_rating = data.get('min_rating', None)  # Get the minimum rating from the request
+        min_rating = int(min_rating) if min_rating and int(min_rating) > 0 else None
+        query_type = data.get('query_type', 'Ranked Query') # default is Ranked Query
         
         if user_id not in user_data:
             return jsonify({'error': 'Invalid user'}), 400
 
         read_books = user_data[user_id].get("read_books", [])
-        ranked_book_id_list = search(
+        print("user_id: ",user_id, "READ BOOKS:", read_books, "MIN_RATING: ", min_rating, ", Genres: ", selected_genres)
+        results = search(
             es=es,
             query_text=search_query,
-            index_name=INDEX_NAME, 
-            relevant_book_ids=read_books, 
+            index_name=INDEX_NAME,
+            relevant_book_ids=read_books,
             personalization=True,
-            genres=["Magic", "Cooking", "Comedy"],  #settings.get("genres"),
-            min_rating=4.0  #setting.get("min_rating")
+            genres=selected_genres,  # Pass the selected genres to the search function
+            min_rating=min_rating,   # Pass the minimum rating to the search function
+            #query_type=query_type
         )
-        return jsonify(ranked_book_id_list)
+        return jsonify(results)
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 @app.route("/api/add_read_book", methods=["POST"])
 def add_read_book():
@@ -188,6 +233,26 @@ def get_book_id_by_title():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/api/remove_read_book", methods=["POST"])
+def remove_read_book():
+    try:
+        data = request.get_json()
+        user_id = int(data.get('user_id', 0))
+        book_id = data.get('book_id')
+
+        if user_id not in user_data:
+            return jsonify({'error': 'Invalid user'}), 400
+
+        if book_id is None:
+            return jsonify({'error': 'Missing book_id'}), 400
+        
+        if book_id in user_data[user_id]["read_books"]:
+            user_data[user_id]["read_books"].remove(book_id)
+        
+        return jsonify({'message': 'Book removed from read_books', 'read_books': user_data[user_id]["read_books"]})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 if __name__ == "__main__":

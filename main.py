@@ -17,6 +17,9 @@ config.read("config.info")
 USERNAME = config.get("DEFAULT", "es_username")
 PWD = config.get("DEFAULT", "es_password")
 INDEX_NAME = config.get("DEFAULT", "index_name")
+ADDED_TERM_REL_WEIGHT = float(config.get("DEFAULT", "added_term_rel_weight"))
+FIELDS = config.get("DEFAULT", "fields").split(",")
+
 
 es = connect_to_es(USERNAME, PWD)
 
@@ -107,6 +110,8 @@ def search_request():
             query_text=search_query,
             index_name=INDEX_NAME,
             relevant_book_ids=read_books,
+            fields=FIELDS,
+            added_term_rel_weight=ADDED_TERM_REL_WEIGHT,
             genres=selected_genres,  # Pass the selected genres to the search function
             min_rating=min_rating,   # Pass the minimum rating to the search function
             query_type=query_type
@@ -193,7 +198,7 @@ def get_book_id_by_title():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
   
-  
+
 @app.route("/api/remove_read_book", methods=["POST"])
 def remove_read_book():
     try:

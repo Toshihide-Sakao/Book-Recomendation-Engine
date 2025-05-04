@@ -4,5 +4,5 @@
 es_username=elastic
 es_password=
 index_name=books
-added_term_rel_weight=0.65   # How large percentage of the score should be influenced by read books
+added_term_rel_weight=0.65   # Personalization weight
 fields=Summary,Author,Title^3,Genres^2

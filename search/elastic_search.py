@@ -3,14 +3,8 @@ from elasticsearch import Elasticsearch
 import configparser
 import math
 
-config = configparser.ConfigParser()
-config.read("./config.info")
 
-ADDED_TERM_REL_WEIGHT = float(config.get("DEFAULT", "added_term_rel_weight"))
-FIELDS = config.get("DEFAULT", "fields").split(",")
-
-
-def relevance_feedback(es, query_text, index_name, doc_ids, fields):
+def relevance_feedback(es, query_text, index_name, doc_ids, fields, added_term_rel_weight):
     aggregated_tfidf = {}
     
     for doc_id in doc_ids:
@@ -33,14 +27,11 @@ def relevance_feedback(es, query_text, index_name, doc_ids, fields):
                 idf = math.log((doc_count + 1) / (df + 1)) + 1
                 
                 tfidf = tf * idf
-                
-                # TODO: is this correct?: Aggregate the TF-IDF scores if the same term appears across different fields/docs.
                 aggregated_tfidf[term] = aggregated_tfidf.get(term, 0) + tfidf
 
-    # sorted_terms = sorted(aggregated_tfidf.items(), key=lambda x: x[1], reverse=True)[:top_n_terms]
     sorted_terms = aggregated_tfidf.items()
-    multiplier = ADDED_TERM_REL_WEIGHT / (1 - ADDED_TERM_REL_WEIGHT)
-    score_sum = sum(aggregated_tfidf.values()) / multiplier
+    multiplier = added_term_rel_weight / (1 - added_term_rel_weight)
+    score_sum = sum(aggregated_tfidf.values())
     sorted_terms = [(term, score/score_sum) for term, score in sorted_terms]
 
     boosted_clauses = [  # Add terms from relevant docs
@@ -48,7 +39,7 @@ def relevance_feedback(es, query_text, index_name, doc_ids, fields):
             "multi_match": {
                 "fields": fields,
                 "query": term,
-                "boost": round(score, 2)
+                "boost": round(score * multiplier, 2)
             }
         }
         for term, score in sorted_terms
@@ -83,11 +74,9 @@ def connect_to_es(username, password):
     return es
 
 
-def search(es: Elasticsearch, query_text: str, index_name: str, relevant_book_ids: list, genres=None, min_rating=None, query_type="Ranked Query"):
-    # Initialize the query
+def search(es: Elasticsearch, query_text: str, index_name: str, relevant_book_ids: list, fields, added_term_rel_weight, genres=None, min_rating=None, query_type="Ranked Query", size=10):
     query = {"bool": {"filter": []}}
-    # Add genre filtering if genres are provided
-    if genres:
+    if genres is not None:
         query["bool"]["filter"].append({
                 "bool": {
                     "should": [
@@ -98,8 +87,7 @@ def search(es: Elasticsearch, query_text: str, index_name: str, relevant_book_id
             }
         )
     
-    # Add rating filtering if min_rating is provided
-    if min_rating:
+    if min_rating is not None:
         query["bool"]["filter"].append({"range": {"Rating": {"gte": min_rating}}})
     
     if query_type == "Phrase Query":
@@ -107,15 +95,13 @@ def search(es: Elasticsearch, query_text: str, index_name: str, relevant_book_id
         query["bool"]["must"] = {
             "multi_match": {
                 "query": query_text,
-                "fields": FIELDS,
+                "fields": fields,
                 "type": "phrase"
             }
         }
-        # wrap query in the top-level "query" key
         query = {"query": query}   
     else:
-        relevance_query = relevance_feedback(es, query_text, index_name, relevant_book_ids, FIELDS)
-        
+        relevance_query = relevance_feedback(es, query_text, index_name, relevant_book_ids, fields, added_term_rel_weight)
         # merge query with filters into the relevance_query
         if "bool" not in relevance_query["query"]:
             relevance_query["query"]["bool"] = {}
@@ -123,7 +109,7 @@ def search(es: Elasticsearch, query_text: str, index_name: str, relevant_book_id
         query = relevance_query
     
 
-    response = es.search(index=index_name, body=query)
+    response = es.search(index=index_name, body=query, size=size)
     results = [hit["_source"] for hit in response["hits"]["hits"]]  # Extract results
 
     return results
@@ -146,3 +132,7 @@ def fetch_book_id_by_title(es, index_name, title):
     else:
         print("No book found with the given Title.")
         return []
+
+
+def get_title_by_id(es, index_name, id):
+    return es.get(index=index_name, id=id)['_source'].get('Title')

@@ -1,3 +1,7 @@
+import json
+import configparser
+from elasticsearch import Elasticsearch
+
 # Read credentials from the .info file
 config = configparser.ConfigParser()
 config.read("../config.info")  # Path to your .info file

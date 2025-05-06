@@ -49,7 +49,8 @@ To start or stop the Elasticsearch container:
 5. Insert sample data:
 
    ```bash
-   python search/insert_data.py
+   cd search
+   python insert_data.py
    ```
 
 ---
